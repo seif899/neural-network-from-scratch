@@ -1,0 +1,4 @@
+csvTestImages 10k x 784.csv
+csvTestLabel 10k x 1.csv
+csvTrainImages 60k x 784.csv
+csvTrainImages 60k x 784.csv
