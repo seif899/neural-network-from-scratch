@@ -27,31 +27,60 @@ input_size=784
 hidden_size=128
 output_size=10
 
-weights = np.random.randn(input_size, hidden_size) 
+weights1 = np.random.randn(input_size, hidden_size) 
+weights2 = np.random.randn(hidden_size, output_size)
+
+cost_weight_derivative = np.zeros(input_size, hidden_size)
+
 biases1 = np.zeros(hidden_size)
 biases2 = np.zeros(output_size)
+
+weightedInputs1 = np.zeros(hidden_size)
+weightedInputs2 = np.zeros(output_size)
+
+
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
-def calculate_layer(weights,biases,input_layer,output_layer,output_size,input_size):
-    for i in range(output_size): 
-        s=0
-        for j in range(input_size):
-            s+=weights[j,i]*input_layer[j]
 
-        output_layer[i] = sigmoid(s+biases[i])
-    
-    #print(output_layer)
+def calculate_layer(weights, biases, input_layer, output_layer, output_size, input_size):
+    for i in range(output_size):
+        s = np.dot(input_layer, weights[:, i]) + biases[i]
+        if output_size == hidden_size:
+            weightedInputs1[i] = s
+        else:
+            weightedInputs2[i] = s
+        output_layer[i] = sigmoid(s)
     return output_layer
+
 def calculate_cost(expected,output_layer,output_size):
-    return np.array([(expected[i]-output_layer[i])**2 for i in range(output_size)])
+    return sum(np.array([(expected[i]-output_layer[i])**2 for i in range(output_size)]))
 
-def backpropogate(output_layer,output_size):
-    expected=np.array([1 if i==y[0] else 0 for i in range(output_size)])
-    cost_vector = calculate_cost(expected,output_layer,output_size)
-    print(cost_vector)
+def sigmoid_deriv(f):
+    return f * (1-f)
+
+def backpropagate(output_layer, expected, hidden_layer, weights1, weights2, biases1, biases2, learning_rate):
+    output_error = output_layer - expected
+    output_delta = output_error * sigmoid_deriv(output_layer)  
+
+    weights2_grad = np.outer(hidden_layer, output_delta)
+    biases2_grad = output_delta
 
 
-calculate_layer(weights,biases1,X[0],hidden_layer,hidden_size,input_size)
-calculate_layer(weights,biases2,hidden_layer,output_layer,output_size,hidden_size)
-backpropogate(output_layer,output_size)
+    hidden_error = np.dot(weights2, output_delta) * sigmoid_deriv(hidden_layer)  
+    weights1_grad = np.outer(X[0], hidden_error)  
+    biases1_grad = hidden_error
+
+    weights2 -= learning_rate * weights2_grad
+    biases2 -= learning_rate * biases2_grad
+    weights1 -= learning_rate * weights1_grad
+    biases1 -= learning_rate * biases1_grad
+
+    return weights1, weights2, biases1, biases2
+
+    
+
+
+            
+
+
